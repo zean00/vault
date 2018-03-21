@@ -146,8 +146,8 @@ func NewSystemBackend(core *Core, logger log.Logger) *SystemBackend {
 					logical.DeleteOperation: b.handleCORSDelete,
 				},
 
-				HelpDescription: strings.TrimSpace(sysHelp["config/cors"][0]),
-				HelpSynopsis:    strings.TrimSpace(sysHelp["config/cors"][1]),
+				HelpSynopsis:    strings.TrimSpace(sysHelp["config/cors"][0]),
+				HelpDescription: strings.TrimSpace(sysHelp["config/cors"][1]),
 			},
 
 			&framework.Path{
@@ -170,8 +170,8 @@ func NewSystemBackend(core *Core, logger log.Logger) *SystemBackend {
 					logical.DeleteOperation: b.handleConfigUIHeadersDelete,
 				},
 
-				HelpDescription: strings.TrimSpace(sysHelp["config/ui/headers"][0]),
-				HelpSynopsis:    strings.TrimSpace(sysHelp["config/ui/headers"][1]),
+				HelpSynopsis:    strings.TrimSpace(sysHelp["config/ui/headers"][0]),
+				HelpDescription: strings.TrimSpace(sysHelp["config/ui/headers"][1]),
 			},
 
 			&framework.Path{
@@ -181,8 +181,8 @@ func NewSystemBackend(core *Core, logger log.Logger) *SystemBackend {
 					logical.ListOperation: b.handleConfigUIHeadersList,
 				},
 
-				HelpDescription: strings.TrimSpace(sysHelp["config/ui/headers"][0]),
-				HelpSynopsis:    strings.TrimSpace(sysHelp["config/ui/headers"][1]),
+				HelpSynopsis:    strings.TrimSpace(sysHelp["config/ui/headers"][0]),
+				HelpDescription: strings.TrimSpace(sysHelp["config/ui/headers"][1]),
 			},
 
 			&framework.Path{

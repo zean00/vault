@@ -136,6 +136,11 @@ spellcheck:
 	@echo "==> Spell checking website..."
 	@misspell -error -source=text website/source
 
+docs:
+	@CGO_ENABLED=0 go build -o bin/apidoc ./apidoc
+	@bin/apidoc > swagger.yaml
+	@echo "swagger.yaml built successfully"
+
 mysql-database-plugin:
 	@CGO_ENABLED=0 go build -o bin/mysql-database-plugin ./plugins/database/mysql/mysql-database-plugin
 
