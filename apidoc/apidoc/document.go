@@ -87,7 +87,7 @@ func NewMethod(httpMethod string, summary string) Method {
 	}
 
 	switch httpMethod {
-	case "GET", "PUT", "POST", "HEAD", "DELETE":
+	case "GET", "PUT", "POST", "HEAD", "DELETE", "OPTIONS": // TODO: how best to handle LIST?
 	default:
 		log.Fatalf("unsupported method: %s", httpMethod)
 	}

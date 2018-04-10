@@ -59,7 +59,7 @@ func sysGenerateRootAttempt() apidoc.Path {
 	p.AddMethod(m)
 
 	// PUT
-	m = apidoc.NewMethod("PUT", "Initializes a new root generation attempt")
+	m = apidoc.NewMethod("POST", "Initializes a new root generation attempt")
 	m.BodyFields = []apidoc.Property{
 		apidoc.NewProperty("otp", "string", "Specifies a base64-encoded 16-byte value."),
 		apidoc.NewProperty("pgp_key", "string", "Specifies a base64-encoded PGP public key."),
@@ -88,7 +88,7 @@ func sysGenerateRootUpdate() apidoc.Path {
 	p := apidoc.NewPath("generate-root/update")
 
 	// PUT
-	m := apidoc.NewMethod("PUT", "Enter a single master key share to progress the root generation attempt.")
+	m := apidoc.NewMethod("POST", "Enter a single master key share to progress the root generation attempt.")
 	m.BodyFields = []apidoc.Property{
 		apidoc.NewProperty("key", "string", "Specifies a single master key share."),
 		apidoc.NewProperty("nonce", "string", "Specifies the nonce of the attempt."),
@@ -115,7 +115,7 @@ func sysInit() apidoc.Path {
 	m.AddResponse(200, `{"initialized": true}`)
 	p.AddMethod(m)
 
-	m = apidoc.NewMethod("PUT", sysHelp["init"][0])
+	m = apidoc.NewMethod("POST", sysHelp["init"][0])
 	m.BodyFields = []apidoc.Property{
 		apidoc.NewProperty("pgp_keys", "array/string",
 			"Specifies an array of PGP public keys used to encrypt the output unseal keys. Ordering is preserved. The keys must be base64-encoded from their original binary representation. The size of this array must be the same as secret_shares."),
@@ -187,7 +187,7 @@ func seal() apidoc.Path {
 
 func stepDown() apidoc.Path {
 	p := apidoc.NewPath("step-down")
-	m := apidoc.NewMethod("PUT", "Causes the node to give up active status.")
+	m := apidoc.NewMethod("POST", "Causes the node to give up active status.")
 	m.Responses = []apidoc.Response{apidoc.StdRespNoContent}
 	p.AddMethod(m)
 
@@ -234,7 +234,7 @@ func sysRekeyInit() apidoc.Path {
 	p.AddMethod(m)
 
 	// PUT
-	m = apidoc.NewMethod("PUT", "Initializes a new rekey attempt")
+	m = apidoc.NewMethod("POST", "Initializes a new rekey attempt")
 	m.BodyFields = []apidoc.Property{
 		apidoc.NewProperty("secret_shares", "number",
 			"Specifies the number of shares to split the master key into."),
@@ -259,7 +259,7 @@ func sysRekeyUpdate() apidoc.Path {
 	p := apidoc.NewPath("rekey/update")
 
 	// PUT
-	m := apidoc.NewMethod("PUT", "Enter a single master key share to progress the rekey of the Vault.")
+	m := apidoc.NewMethod("POST", "Enter a single master key share to progress the rekey of the Vault.")
 	m.BodyFields = []apidoc.Property{
 		apidoc.NewProperty("key", "string", "Specifies a single master key share."),
 		apidoc.NewProperty("nonce", "string", "Specifies the nonce of the rekey attempt."),
@@ -282,7 +282,7 @@ func sysRekeyBackup() apidoc.Path {
 	p := apidoc.NewPath("rekey/backup")
 
 	// GET
-	m := apidoc.NewMethod("PUT", "Return the backup copy of PGP-encrypted unseal keys.")
+	m := apidoc.NewMethod("POST", "Return the backup copy of PGP-encrypted unseal keys.")
 	m.AddResponse(200, `
 	{
 	  "nonce": "2dbd10f1-8528-6246-09e7-82b25b8aba63",
@@ -343,7 +343,7 @@ func sysRekeyRecoveryInit() apidoc.Path {
 	p.AddMethod(m)
 
 	// PUT
-	m = apidoc.NewMethod("PUT", "Initializes a new rekey attempt")
+	m = apidoc.NewMethod("POST", "Initializes a new rekey attempt")
 	m.BodyFields = []apidoc.Property{
 		apidoc.NewProperty("secret_shares", "number",
 			"Specifies the number of shares to split the recovery key into."),
@@ -368,7 +368,7 @@ func sysRekeyRecoveryUpdate() apidoc.Path {
 	p := apidoc.NewPath("rekey-recovery-key/update")
 
 	// PUT
-	m := apidoc.NewMethod("PUT", "Enter a single master key share to progress the rekey of the Vault.")
+	m := apidoc.NewMethod("POST", "Enter a single master key share to progress the rekey of the Vault.")
 	m.BodyFields = []apidoc.Property{
 		apidoc.NewProperty("key", "string", "Specifies a single master key share."),
 		apidoc.NewProperty("nonce", "string", "Specifies the nonce of the rekey attempt."),
@@ -418,7 +418,7 @@ func sysWrappingLookup() apidoc.Path {
 
 func unseal() apidoc.Path {
 	p := apidoc.NewPath("unseal")
-	m := apidoc.NewMethod("PUT", sysHelp["unseal"][0])
+	m := apidoc.NewMethod("POST", sysHelp["unseal"][0])
 	m.BodyFields = []apidoc.Property{
 		apidoc.NewProperty("key", "string", "Specifies a single master key share. This is required unless reset is true."),
 		apidoc.NewProperty("reset", "boolean", "Specifies if previously-provided unseal keys are discarded and the unseal process is reset."),

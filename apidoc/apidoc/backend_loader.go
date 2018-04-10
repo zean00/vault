@@ -37,11 +37,8 @@ func procFrameworkPath(p *framework.Path) []Path {
 				Description: cleanString(p.HelpDescription),
 			}
 			switch opType {
-			case logical.CreateOperation:
+			case logical.CreateOperation, logical.UpdateOperation:
 				httpMethod = "POST"
-				m.Responses = []Response{StdRespNoContent}
-			case logical.UpdateOperation:
-				httpMethod = "PUT"
 				m.Responses = []Response{StdRespNoContent}
 			case logical.DeleteOperation:
 				httpMethod = "DELETE"
@@ -155,13 +152,13 @@ func convertType(t framework.FieldType) (string, string) {
 	var ret, sub string
 
 	switch t {
-	case framework.TypeString, framework.TypeNameString, framework.TypeKVPairs:
+	case framework.TypeString, framework.TypeNameString:
 		ret = "string"
 	case framework.TypeInt, framework.TypeDurationSecond:
 		ret = "number"
 	case framework.TypeBool:
 		ret = "boolean"
-	case framework.TypeMap:
+	case framework.TypeMap, framework.TypeKVPairs:
 		ret = "object"
 	case framework.TypeSlice, framework.TypeStringSlice, framework.TypeCommaStringSlice:
 		ret = "array"
@@ -176,8 +173,10 @@ func convertType(t framework.FieldType) (string, string) {
 	return ret, sub
 }
 
+var wsRe = regexp.MustCompile(`\s+`)
+
 // cleanString prepares s for inclusion in the output YAML. This is currently just
-// basic escaping, truncating, and wrapping in quotes.
+// basic escaping, whitespace thinning, and wrapping in quotes.
 func cleanString(s string) string {
 	s = strings.TrimSpace(s)
 
@@ -186,7 +185,7 @@ func cleanString(s string) string {
 	//	s = s[0:idx] + "..."
 	//}
 
-	s = strings.Replace(s, "\n", "", -1)
+	s = wsRe.ReplaceAllString(s, " ")
 	s = strings.Replace(s, `"`, `\"`, -1)
 
 	return fmt.Sprintf(`"%s"`, s)
