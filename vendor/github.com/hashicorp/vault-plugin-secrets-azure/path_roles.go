@@ -161,12 +161,12 @@ func (b *azureSecretBackend) pathRoleUpdate(ctx context.Context, req *logical.Re
 
 		err := jsonutil.DecodeJSON([]byte(roles.(string)), &parsedRoles)
 		if err != nil {
-			return logical.ErrorResponse("invalid Azure role definitions"), nil
+			return logical.ErrorResponse(fmt.Sprintf("error parsing Azure roles '%s': %s", roles.(string), err.Error())), nil
 		}
 		role.AzureRoles = parsedRoles
 	}
 
-	roleIDs := make(map[string]bool)
+	roleSet := make(map[string]bool)
 	for _, r := range role.AzureRoles {
 		var roleDef authorization.RoleDefinition
 		if r.RoleID != "" {
@@ -192,12 +192,14 @@ func (b *azureSecretBackend) pathRoleUpdate(ctx context.Context, req *logical.Re
 
 		roleDefID := to.String(roleDef.ID)
 		roleDefName := to.String(roleDef.RoleName)
-		if roleIDs[roleDefID] {
-			return logical.ErrorResponse(fmt.Sprintf("duplicate role_id: '%s'", *roleDef.ID)), nil
-		}
-		roleIDs[roleDefID] = true
 
 		r.RoleName, r.RoleID = roleDefName, roleDefID
+
+		rsKey := r.RoleID + "||" + r.Scope
+		if roleSet[rsKey] {
+			return logical.ErrorResponse(fmt.Sprintf("duplicate role_id and scope: '%s', '%s'", r.RoleID, r.Scope)), nil
+		}
+		roleSet[rsKey] = true
 	}
 
 	if role.ApplicationObjectID == "" && len(role.AzureRoles) == 0 {

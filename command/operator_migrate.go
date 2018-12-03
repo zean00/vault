@@ -162,7 +162,7 @@ func (c *OperatorMigrateCommand) migrate(config *migratorConfig) error {
 
 	migrationStatus, err := CheckStorageMigration(from)
 	if err != nil {
-		return errors.New("error checking migration status")
+		return errwrap.Wrapf("error checking migration status: {{err}}", err)
 	}
 
 	if migrationStatus != nil {
@@ -184,6 +184,7 @@ func (c *OperatorMigrateCommand) migrate(config *migratorConfig) error {
 
 	select {
 	case err := <-doneCh:
+		cancelFunc()
 		return err
 	case <-c.ShutdownCh:
 		c.UI.Output("==> Migration shutdown triggered\n")
@@ -191,7 +192,6 @@ func (c *OperatorMigrateCommand) migrate(config *migratorConfig) error {
 		<-doneCh
 		return errAbort
 	}
-	return nil
 }
 
 // migrateAll copies all keys in lexicographic order.

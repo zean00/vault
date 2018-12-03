@@ -15,7 +15,6 @@ EXTERNAL_TOOLS=\
 GOFMT_FILES?=$$(find . -name '*.go' | grep -v vendor)
 
 GO_VERSION_MIN=1.10
-
 CGO_ENABLED=0
 ifneq ($(FDB_ENABLED), )
 	CGO_ENABLED=1
@@ -36,6 +35,16 @@ dev-ui: prep
 	@CGO_ENABLED=$(CGO_ENABLED) BUILD_TAGS='$(BUILD_TAGS) ui' VAULT_DEV_BUILD=1 sh -c "'$(CURDIR)/scripts/build.sh'"
 dev-dynamic: prep
 	@CGO_ENABLED=1 BUILD_TAGS='$(BUILD_TAGS)' VAULT_DEV_BUILD=1 sh -c "'$(CURDIR)/scripts/build.sh'"
+
+# *-mem variants will enable memory profiling which will write snapshots of heap usage
+# to $TMP/vaultprof every 5 minutes. These can be analyzed using `$ go tool pprof <profile_file>`.
+# Note that any build can have profiling added via: `$ BUILD_TAGS=memprofiler make ...`
+dev-mem: BUILD_TAGS+=memprofiler
+dev-mem: dev
+dev-ui-mem: BUILD_TAGS+=memprofiler
+dev-ui-mem: dev-ui
+dev-dynamic-mem: BUILD_TAGS+=memprofiler
+dev-dynamic-mem: dev-dynamic
 
 testtravis: BUILD_TAGS+=travis
 testtravis: test
@@ -115,13 +124,13 @@ static-assets:
 
 test-ember:
 	@echo "--> Installing JavaScript assets"
-	@cd ui && yarn
+	@cd ui && yarn --ignore-optional
 	@echo "--> Running ember tests"
 	@cd ui && yarn run test-oss
 
 ember-dist:
 	@echo "--> Installing JavaScript assets"
-	@cd ui && yarn
+	@cd ui && yarn --ignore-optional
 	@cd ui && npm rebuild node-sass
 	@echo "--> Building Ember application"
 	@cd ui && yarn run build
@@ -129,7 +138,7 @@ ember-dist:
 
 ember-dist-dev:
 	@echo "--> Installing JavaScript assets"
-	@cd ui && yarn
+	@cd ui && yarn --ignore-optional
 	@cd ui && npm rebuild node-sass
 	@echo "--> Building Ember application"
 	@cd ui && yarn run build-dev

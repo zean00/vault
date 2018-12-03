@@ -216,18 +216,27 @@
   }
 }
 
+.nav-user-button .icon {
+  position: relative;
+}
+.nav-user-button.may-expire .icon:first-of-type::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 6px;
+  width: 6px;
+  border-radius: 50%;
+  background: $yellow;
+}
 .navbar-drawer-scroll {
   overflow: auto;
   height: 100%;
   -webkit-overflow-scrolling: touch;
 
   &::before {
-    background-image: linear-gradient(
-      to bottom,
-      $ui-gray-900,
-      rgba($ui-gray-900, 0)
-    );
-    content: "";
+    background-image: linear-gradient(to bottom, $ui-gray-900, rgba($ui-gray-900, 0));
+    content: '';
     height: $spacing-xs;
     left: 0;
     position: absolute;

@@ -1,3 +1,5 @@
+// +build !enterprise
+
 package command
 
 import (
@@ -41,6 +43,7 @@ func TestSealMigration(t *testing.T) {
 		NumCores:    1,
 	}
 
+	ctx := context.Background()
 	var keys []string
 	var rootToken string
 
@@ -108,10 +111,10 @@ func TestSealMigration(t *testing.T) {
 
 		core := cluster.Cores[0].Core
 
-		newSeal := vault.NewAutoSeal(&seal.TestSeal{})
+		newSeal := vault.NewAutoSeal(seal.NewTestSeal(logger))
 		newSeal.SetCore(core)
 		autoSeal = newSeal
-		if err := adjustCoreForSealMigration(context.Background(), core, coreConfig, newSeal, &server.Config{
+		if err := adjustCoreForSealMigration(ctx, core, coreConfig, newSeal, &server.Config{
 			Seal: &server.Seal{
 				Type: "test-auto",
 			},
@@ -159,7 +162,7 @@ func TestSealMigration(t *testing.T) {
 		client := cluster.Cores[0].Client
 		client.SetToken(rootToken)
 
-		if err := core.UnsealWithStoredKeys(context.Background()); err != nil {
+		if err := core.UnsealWithStoredKeys(ctx); err != nil {
 			t.Fatal(err)
 		}
 		resp, err := client.Sys().SealStatus()
@@ -186,12 +189,17 @@ func TestSealMigration(t *testing.T) {
 			t.Fatal(err)
 		}
 		sealAccess := core.SealAccess()
-		if err := sealAccess.VerifyRecoveryKey(context.Background(), recoveredKey); err != nil {
+		if err := sealAccess.VerifyRecoveryKey(ctx, recoveredKey); err != nil {
 			t.Fatal(err)
 		}
 
 		cluster.Cleanup()
 		cluster.Cores = nil
+	}
+
+	// We should see stored barrier keys; after the next stanza, we shouldn't
+	if entry, err := phys.Get(ctx, vault.StoredBarrierKeysPath); err != nil || entry == nil {
+		t.Fatalf("expected nil error and non-nil entry, got error %#v and entry %#v", err, entry)
 	}
 
 	// Fifth: create an autoseal and activate migration. Verify it doesn't work
@@ -210,11 +218,11 @@ func TestSealMigration(t *testing.T) {
 			},
 		}
 
-		if err := adjustCoreForSealMigration(context.Background(), core, coreConfig, shamirSeal, serverConf); err == nil {
+		if err := adjustCoreForSealMigration(ctx, core, coreConfig, shamirSeal, serverConf); err == nil {
 			t.Fatal("expected error since disabled isn't set true")
 		}
 		serverConf.Seal.Disabled = true
-		if err := adjustCoreForSealMigration(context.Background(), core, coreConfig, shamirSeal, serverConf); err != nil {
+		if err := adjustCoreForSealMigration(ctx, core, coreConfig, shamirSeal, serverConf); err != nil {
 			t.Fatal(err)
 		}
 
@@ -247,6 +255,10 @@ func TestSealMigration(t *testing.T) {
 		cluster.Cores = nil
 	}
 
+	if entry, err := phys.Get(ctx, vault.StoredBarrierKeysPath); err != nil || entry != nil {
+		t.Fatalf("expected nil error and nil entry, got error %#v and entry %#v", err, entry)
+	}
+
 	// Sixth: verify autoseal is off and the expected key shares work
 	{
 		coreConfig.Seal = shamirSeal
@@ -258,7 +270,7 @@ func TestSealMigration(t *testing.T) {
 		client := cluster.Cores[0].Client
 		client.SetToken(rootToken)
 
-		if err := core.UnsealWithStoredKeys(context.Background()); err != nil {
+		if err := core.UnsealWithStoredKeys(ctx); err != nil {
 			t.Fatal(err)
 		}
 		resp, err := client.Sys().SealStatus()
