@@ -34,6 +34,7 @@ module.exports = function(environment) {
     },
   };
   if (environment === 'development') {
+    ENV.APP.DEFAULT_PAGE_SIZE = 5;
     // ENV.APP.LOG_RESOLVER = true;
     // ENV.APP.LOG_ACTIVE_GENERATION = true;
     ENV.APP.LOG_TRANSITIONS = true;
@@ -62,7 +63,6 @@ module.exports = function(environment) {
     ENV.flashMessageDefaults.timeout = 50;
   }
   if (environment !== 'production') {
-    ENV.APP.DEFAULT_PAGE_SIZE = 5;
     ENV.contentSecurityPolicyHeader = 'Content-Security-Policy';
     ENV.contentSecurityPolicyMeta = true;
     ENV.contentSecurityPolicy = {
