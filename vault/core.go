@@ -131,19 +131,6 @@ type unlockInformation struct {
 	Nonce string
 }
 
-type counters struct {
-	// activePath is set at startup to the path we primed the requests counter from,
-	// or empty string if there wasn't a relevant path - either because this is the first
-	// time Vault starts with the feature enabled, or because Vault hadn't written
-	// out the request counter this month yet.
-	// Whenever we write out the counters, we update activePath if it's no longer
-	// accurate.  This coincides with a reset of the counters.
-	// There's no lock because the only reader/writer of activePath is the goroutine
-	// doing background syncs.
-	activePath string
-	requests   uint64
-}
-
 // Core is used as the central manager of Vault activity. It is the primary point of
 // interface for API handlers and is responsible for managing the logical and physical
 // backends, router, security barrier, and audit trails.
@@ -153,8 +140,6 @@ type Core struct {
 	// The registry of builtin plugins is passed in here as an interface because
 	// if it's used directly, it results in import cycles.
 	builtinRegistry BuiltinRegistry
-
-	counters counters
 
 	// N.B.: This is used to populate a dev token down replication, as
 	// otherwise, after replication is started, a dev would have to go through
@@ -416,6 +401,9 @@ type Core struct {
 	// Stores loggers so we can reset the level
 	allLoggers     []log.Logger
 	allLoggersLock sync.RWMutex
+
+	// Stores request counters
+	counters counters
 }
 
 // CoreConfig is used to parameterize a core
@@ -590,6 +578,7 @@ func NewCore(conf *CoreConfig) (*Core, error) {
 		activeContextCancelFunc:          new(atomic.Value),
 		allLoggers:                       conf.AllLoggers,
 		builtinRegistry:                  conf.BuiltinRegistry,
+		counters:                         counters{requests: new(uint64)},
 	}
 
 	atomic.StoreUint32(c.sealed, 1)
