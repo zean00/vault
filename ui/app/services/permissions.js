@@ -1,16 +1,14 @@
 import Service, { inject as service } from '@ember/service';
 import { task } from 'ember-concurrency';
 
-// decide what happens when no policies are found
-// because requesting the root token's ACL policy always returns nil
-// https://github.com/hashicorp/vault/pull/4386/files#diff-a145099c8e3d917858619dcfb2ae09b9R3464
-
 export default Service.extend({
-  paths: null,
+  exactPaths: null,
+  globPaths: null,
+  isRootToken: null,
   store: service(),
 
   getPaths: task(function*() {
-    if (this.get('paths')) {
+    if (this.paths) {
       return;
     }
     let resp = yield this.get('store')
@@ -21,16 +19,35 @@ export default Service.extend({
   }),
 
   setPaths(resp) {
-    this.set('paths', resp.data);
+    this.set('exactPaths', resp.data.exact_paths);
+    this.set('globPaths', resp.data.glob_paths);
+    this.set('isRootToken', resp.data.root);
   },
 
   hasPermission(pathName) {
-    if (this.get('paths')) {
-      const paths = this.get('paths');
-      return Object.keys(paths).some(pathType => {
-        return paths[pathType].hasOwnProperty(pathName);
-      });
+    if (this.isRootToken || this.hasMatchingExactPath(pathName) || this.hasMatchingGlobPath(pathName)) {
+      return true;
     }
     return false;
+  },
+
+  hasMatchingExactPath(pathName) {
+    const exactPaths = this.get('exactPaths');
+    return exactPaths && exactPaths.hasOwnProperty(pathName) && this.isNotDenied(exactPaths[pathName]);
+  },
+
+  hasMatchingGlobPath(pathName) {
+    const globPaths = this.get('globPaths');
+    if (globPaths) {
+      return (
+        (Object.keys(globPaths).includes(pathName) && this.isNotDenied(globPaths[pathName])) ||
+        globPaths.hasOwnProperty('')
+      );
+    }
+    return false;
+  },
+
+  isNotDenied(path) {
+    return !path.capabilities.includes('deny');
   },
 });

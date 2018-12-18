@@ -11,9 +11,12 @@ const PERMISSIONS_RESPONSE = {
       bar: {
         capabilities: ['create'],
       },
+      boo: {
+        capabilities: ['deny'],
+      },
     },
     glob_paths: {
-      baz: {
+      'baz/biz': {
         capabilities: ['read'],
       },
     },
@@ -37,17 +40,43 @@ module('Unit | Service | permissions', function(hooks) {
   test('sets paths properly', async function(assert) {
     let service = this.owner.lookup('service:permissions');
     await service.getPaths.perform();
-    assert.deepEqual(service.get('paths'), PERMISSIONS_RESPONSE.data);
+    assert.deepEqual(service.get('exactPaths'), PERMISSIONS_RESPONSE.data.exact_paths);
+    assert.deepEqual(service.get('globPaths'), PERMISSIONS_RESPONSE.data.glob_paths);
   });
 
-  test('returns true if a policy includes access to a path', function(assert) {
+  test('returns true if a policy includes access to an exact path', function(assert) {
     let service = this.owner.lookup('service:permissions');
-    service.set('paths', PERMISSIONS_RESPONSE.data);
+    service.set('exactPaths', PERMISSIONS_RESPONSE.data.exact_paths);
     assert.equal(service.hasPermission('foo'), true);
   });
 
-  test('returns false if a policy does not includes access to a path', function(assert) {
+  test('it returns true if a policy includes access to a glob path', function(assert) {
+    let service = this.owner.lookup('service:permissions');
+    service.set('globPaths', PERMISSIONS_RESPONSE.data.glob_paths);
+    assert.equal(service.hasPermission('baz'), true);
+  });
+
+  test('it returns true if a policy includes access to the * glob path', function(assert) {
+    let service = this.owner.lookup('service:permissions');
+    const splatPath = { '': {} };
+    service.set('globPaths', splatPath);
+    assert.equal(service.hasPermission('baz'), true);
+  });
+
+  test('it returns false if the matched path includes the deny capability', function(assert) {
+    let service = this.owner.lookup('service:permissions');
+    service.set('globPaths', PERMISSIONS_RESPONSE.data.glob_paths);
+    assert.equal(service.hasPermission('boo'), false);
+  });
+
+  test('it returns false if a policy does not includes access to a path', function(assert) {
     let service = this.owner.lookup('service:permissions');
     assert.equal(service.hasPermission('biz'), false);
+  });
+
+  test('returns true with the root token', function(assert) {
+    let service = this.owner.lookup('service:permissions');
+    service.set('isRootToken', true);
+    assert.equal(service.hasPermission('hi'), true);
   });
 });
