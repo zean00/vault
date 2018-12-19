@@ -1,11 +1,12 @@
 import Service, { inject as service } from '@ember/service';
-import { task } from 'ember-concurrency';
+import { task, waitForProperty } from 'ember-concurrency';
 
 export default Service.extend({
   exactPaths: null,
   globPaths: null,
   isRootToken: null,
   store: service(),
+  auth: service(),
 
   getPaths: task(function*() {
     if (this.paths) {
@@ -23,6 +24,11 @@ export default Service.extend({
     this.set('globPaths', resp.data.glob_paths);
     this.set('isRootToken', resp.data.root);
   },
+
+  checkAuthToken: task(function*() {
+    yield waitForProperty(this.auth, 'currentTokenName', token => !!token);
+    yield this.getPaths.perform();
+  }),
 
   hasPermission(pathName) {
     if (this.isRootToken || this.hasMatchingExactPath(pathName) || this.hasMatchingGlobPath(pathName)) {

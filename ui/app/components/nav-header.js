@@ -8,10 +8,6 @@ export default Component.extend({
   tagName: 'header',
   navDrawerOpen: false,
   consoleFullscreen: false,
-  init() {
-    this._super(...arguments);
-    this.permissions.getPaths.perform();
-  },
   actions: {
     toggleNavDrawer(isOpen) {
       if (isOpen !== undefined) {
