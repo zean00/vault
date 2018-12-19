@@ -39,10 +39,8 @@ export default Service.extend({
   hasMatchingGlobPath(pathName) {
     const globPaths = this.get('globPaths');
     if (globPaths) {
-      return (
-        (Object.keys(globPaths).includes(pathName) && this.isNotDenied(globPaths[pathName])) ||
-        globPaths.hasOwnProperty('')
-      );
+      const matchingPath = Object.keys(globPaths).find(k => pathName.includes(k));
+      return (matchingPath && this.isNotDenied(globPaths[matchingPath])) || globPaths.hasOwnProperty('');
     }
     return false;
   },

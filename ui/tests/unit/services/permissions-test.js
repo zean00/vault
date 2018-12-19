@@ -53,14 +53,14 @@ module('Unit | Service | permissions', function(hooks) {
   test('it returns true if a policy includes access to a glob path', function(assert) {
     let service = this.owner.lookup('service:permissions');
     service.set('globPaths', PERMISSIONS_RESPONSE.data.glob_paths);
-    assert.equal(service.hasPermission('baz'), true);
+    assert.equal(service.hasPermission('baz/biz/hi'), true);
   });
 
   test('it returns true if a policy includes access to the * glob path', function(assert) {
     let service = this.owner.lookup('service:permissions');
     const splatPath = { '': {} };
     service.set('globPaths', splatPath);
-    assert.equal(service.hasPermission('baz'), true);
+    assert.equal(service.hasPermission('hi'), true);
   });
 
   test('it returns false if the matched path includes the deny capability', function(assert) {
@@ -71,7 +71,7 @@ module('Unit | Service | permissions', function(hooks) {
 
   test('it returns false if a policy does not includes access to a path', function(assert) {
     let service = this.owner.lookup('service:permissions');
-    assert.equal(service.hasPermission('biz'), false);
+    assert.equal(service.hasPermission('danger'), false);
   });
 
   test('returns true with the root token', function(assert) {
