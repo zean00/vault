@@ -1569,6 +1569,28 @@ func TestSystemBackend_policyCRUD(t *testing.T) {
 		t.Fatalf("bad: %#v", resp)
 	}
 
+	// Update the policy
+	rules = `path "foo/" { policy = "write" }`
+	req = logical.TestRequest(t, logical.UpdateOperation, "policy/Foo")
+	req.Data["rules"] = rules
+	resp, err = b.HandleRequest(namespace.RootContext(nil), req)
+	if err != nil {
+		t.Fatalf("err: %v %#v", err, resp)
+	}
+	if resp != nil && (resp.IsError() || len(resp.Data) > 0) {
+		t.Fatalf("bad: %#v", resp)
+	}
+
+	req = logical.TestRequest(t, logical.CreateOperation, "policy/Foo")
+	req.Data["rules"] = rules
+	resp, err = b.HandleRequest(namespace.RootContext(nil), req)
+	if err != nil {
+		t.Fatalf("err: %v %#v", err, resp)
+	}
+	if !resp.IsError() {
+		t.Fatalf("Should be logical error")
+	}
+
 	// Read the policy
 	req = logical.TestRequest(t, logical.ReadOperation, "policy/foo")
 	resp, err = b.HandleRequest(namespace.RootContext(nil), req)

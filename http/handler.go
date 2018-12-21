@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/vault/helper/pathmanager"
 	"github.com/hashicorp/vault/logical"
 	"github.com/hashicorp/vault/vault"
+	"go.opencensus.io/plugin/ochttp"
 )
 
 const (
@@ -139,11 +140,16 @@ func Handler(props *vault.HandlerProperties) http.Handler {
 
 	genericWrappedHandler := genericWrapping(core, corsWrappedHandler, props)
 
+	var tracedHandler http.Handler
+	tracedHandler = &ochttp.Handler{Handler: genericWrappedHandler}
+
 	// Wrap the handler with PrintablePathCheckHandler to check for non-printable
 	// characters in the request path.
-	printablePathCheckHandler := genericWrappedHandler
+	printablePathCheckHandler := tracedHandler
+	//printablePathCheckHandler := genericWrappedHandler
 	if !props.DisablePrintableCheck {
-		printablePathCheckHandler = cleanhttp.PrintablePathCheckHandler(genericWrappedHandler, nil)
+		//printablePathCheckHandler = cleanhttp.PrintablePathCheckHandler(genericWrappedHandler, nil)
+		printablePathCheckHandler = cleanhttp.PrintablePathCheckHandler(tracedHandler, nil)
 	}
 
 	return printablePathCheckHandler

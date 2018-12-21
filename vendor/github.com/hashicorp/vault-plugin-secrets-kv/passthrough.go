@@ -201,6 +201,16 @@ func (b *PassthroughBackend) handleWrite() framework.OperationFunc {
 			return logical.ErrorResponse("missing data fields"), nil
 		}
 
+		out, err := req.Storage.Get(ctx, req.Path)
+		if err != nil {
+			return nil, fmt.Errorf("read failed: %v", err)
+		}
+
+		// If data already exist and operation is create
+		if out != nil && req.Operation == logical.CreateOperation {
+			return logical.ErrorResponse("data already exist, use update instead"), nil
+		}
+
 		// JSON encode the data
 		buf, err := json.Marshal(req.Data)
 		if err != nil {

@@ -1266,7 +1266,11 @@ func (b *SystemBackend) policyPaths() []*framework.Path {
 				},
 				logical.UpdateOperation: &framework.PathOperation{
 					Callback: b.handlePoliciesSet(PolicyTypeACL),
-					Summary:  "Add a new or update an existing policy.",
+					Summary:  "Update an existing policy.",
+				},
+				logical.CreateOperation: &framework.PathOperation{
+					Callback: b.handlePoliciesSet(PolicyTypeACL),
+					Summary:  "Add a new policy.",
 				},
 				logical.DeleteOperation: &framework.PathOperation{
 					Callback: b.handlePoliciesDelete(PolicyTypeACL),
@@ -1274,6 +1278,7 @@ func (b *SystemBackend) policyPaths() []*framework.Path {
 				},
 			},
 
+			ExistenceCheck:  b.handlePolicyExistenceCheck,
 			HelpSynopsis:    strings.TrimSpace(sysHelp["policy"][0]),
 			HelpDescription: strings.TrimSpace(sysHelp["policy"][1]),
 		},
@@ -1310,7 +1315,11 @@ func (b *SystemBackend) policyPaths() []*framework.Path {
 				},
 				logical.UpdateOperation: &framework.PathOperation{
 					Callback: b.handlePoliciesSet(PolicyTypeACL),
-					Summary:  "Add a new or update an existing ACL policy.",
+					Summary:  "Update an existing ACL policy.",
+				},
+				logical.CreateOperation: &framework.PathOperation{
+					Callback: b.handlePoliciesSet(PolicyTypeACL),
+					Summary:  "Add a new ACL policy.",
 				},
 				logical.DeleteOperation: &framework.PathOperation{
 					Callback: b.handlePoliciesDelete(PolicyTypeACL),
@@ -1318,6 +1327,7 @@ func (b *SystemBackend) policyPaths() []*framework.Path {
 				},
 			},
 
+			ExistenceCheck:  b.handlePolicyExistenceCheck,
 			HelpSynopsis:    strings.TrimSpace(sysHelp["policy"][0]),
 			HelpDescription: strings.TrimSpace(sysHelp["policy"][1]),
 		},

@@ -1803,6 +1803,17 @@ func (b *SystemBackend) handleDisableAuth(ctx context.Context, req *logical.Requ
 	return nil, nil
 }
 
+func (b *SystemBackend) handlePolicyExistenceCheck(ctx context.Context, req *logical.Request, data *framework.FieldData) (bool, error) {
+	name := data.Get("name").(string)
+
+	out, err := req.Storage.Get(ctx, name)
+	if err != nil {
+		return false, errwrap.Wrapf("existence check failed: {{err}}", err)
+	}
+
+	return out != nil, nil
+}
+
 // handlePoliciesList handles /sys/policy/ and /sys/policies/<type> endpoints to provide the enabled policies
 func (b *SystemBackend) handlePoliciesList(policyType PolicyType) framework.OperationFunc {
 	return func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
@@ -1889,13 +1900,24 @@ func (b *SystemBackend) handlePoliciesSet(policyType PolicyType) framework.Opera
 	return func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 		var resp *logical.Response
 
+		name := data.Get("name").(string)
+
+		p, err := b.Core.policyStore.GetPolicy(ctx, name, policyType)
+		if err != nil {
+			return handleError(err)
+		}
+
+		if p != nil && req.Operation == logical.CreateOperation {
+			return logical.ErrorResponse("data already exist, use update instead"), nil
+		}
+
 		ns, err := namespace.FromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
 
 		policy := &Policy{
-			Name:      strings.ToLower(data.Get("name").(string)),
+			Name:      strings.ToLower(name),
 			Type:      policyType,
 			namespace: ns,
 		}

@@ -48,11 +48,11 @@ func NewAuthHandler(conf *AuthHandlerConfig) *AuthHandler {
 		DoneCh: make(chan struct{}),
 		// This is buffered so that if we try to output after the sink server
 		// has been shut down, during agent shutdown, we won't block
-		OutputCh:                     make(chan string, 1),
-		logger:                       conf.Logger,
-		client:                       conf.Client,
-		random:                       rand.New(rand.NewSource(int64(time.Now().Nanosecond()))),
-		wrapTTL:                      conf.WrapTTL,
+		OutputCh: make(chan string, 1),
+		logger:   conf.Logger,
+		client:   conf.Client,
+		random:   rand.New(rand.NewSource(int64(time.Now().Nanosecond()))),
+		wrapTTL:  conf.WrapTTL,
 		enableReauthOnNewCredentials: conf.EnableReauthOnNewCredentials,
 	}
 

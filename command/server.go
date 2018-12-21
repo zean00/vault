@@ -47,6 +47,10 @@ import (
 	"github.com/mitchellh/cli"
 	testing "github.com/mitchellh/go-testing-interface"
 	"github.com/posener/complete"
+	"go.opencensus.io/exporter/jaeger"
+	"go.opencensus.io/exporter/prometheus"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/trace"
 	"google.golang.org/grpc/grpclog"
 )
 
@@ -312,6 +316,41 @@ func (c *ServerCommand) AutocompleteArgs() complete.Predictor {
 
 func (c *ServerCommand) AutocompleteFlags() complete.Flags {
 	return c.Flags().Completions()
+}
+
+func (c *ServerCommand) initTracer() {
+	agent, ok := os.LookupEnv("TRACER_AGENT")
+	if !ok {
+		agent = "localhost:5775"
+	}
+
+	je, err := jaeger.NewExporter(jaeger.Options{
+		AgentEndpoint: agent,
+		ServiceName:   "vault",
+	})
+	if err != nil {
+		fmt.Println("Failed to create the Jaeger exporter: %v", err)
+	}
+
+	// And now finally register it as a Trace Exporter
+	trace.RegisterExporter(je)
+
+	pe, err := prometheus.NewExporter(prometheus.Options{
+		Namespace: "vault",
+	})
+
+	if err != nil {
+		fmt.Println("Failed to create Prometheus exporter: %v", err)
+	}
+	view.RegisterExporter(pe)
+
+	// Always trace for this demo. In a production application, you should
+	// configure this to a trace.ProbabilitySampler set at the desired
+	// probability.
+	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+
+	// Report stats at every second.
+	view.SetReportingPeriod(1 * time.Second)
 }
 
 func (c *ServerCommand) Run(args []string) int {
@@ -1018,7 +1057,7 @@ CLUSTER_SYNTHESIS_COMPLETE:
 		c.UI.Warn("You may need to set the following environment variable:")
 		c.UI.Warn("")
 
-		endpointURL := "http://"+config.Listeners[0].Config["address"].(string)
+		endpointURL := "http://" + config.Listeners[0].Config["address"].(string)
 		if runtime.GOOS == "windows" {
 			c.UI.Warn("PowerShell:")
 			c.UI.Warn(fmt.Sprintf("    $env:VAULT_ADDR=\"%s\"", endpointURL))
@@ -1073,6 +1112,7 @@ CLUSTER_SYNTHESIS_COMPLETE:
 		c.UI.Warn("")
 	}
 
+	c.initTracer()
 	// Initialize the HTTP servers
 	for _, ln := range lns {
 		handler := vaulthttp.Handler(&vault.HandlerProperties{

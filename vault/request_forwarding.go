@@ -373,9 +373,9 @@ func (c *Core) refreshRequestForwardingConnection(ctx context.Context, clusterAd
 	c.rpcClientConnCancelFunc = cancelFunc
 	c.rpcForwardingClient = &forwardingClient{
 		RequestForwardingClient: NewRequestForwardingClient(c.rpcClientConn),
-		core:                    c,
-		echoTicker:              time.NewTicker(HeartbeatInterval),
-		echoContext:             dctx,
+		core:        c,
+		echoTicker:  time.NewTicker(HeartbeatInterval),
+		echoContext: dctx,
 	}
 	c.rpcForwardingClient.startHeartbeat()
 
